@@ -1,11 +1,11 @@
-# Some cool character — a dark-wizard-merchant chat app
+# Some cool character — your custom NPC chat app
 
 A minimal FastAPI server that serves a one-page chat UI. You type, press Send, and a
-dark-wizard fantasy merchant replies in character. The LLM behind the counter can be a
+custom NPC replies in character. The LLM behind the counter can be a
 **local model (via Ollama)** or the **Claude API** — flip one line in `.env`.
 
 ```
-wizard_chat/
+repo_directory/
 ├── app.py              FastAPI server, the two backends, and the system prompt ("the rules")
 ├── static/index.html   The entire UI (HTML + CSS + JS in one file) it's all under 1 file for now
 ├── requirements.txt
