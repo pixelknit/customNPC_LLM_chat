@@ -1,0 +1,10 @@
+fastapi>=0.115
+uvicorn[standard]>=0.30
+python-dotenv>=1.0
+
+# Local backend (Ollama / LM Studio / llama.cpp / MLX — all OpenAI-compatible):
+openai>=1.40
+
+# Claude backend — only needed if USE_LOCAL=false. Requires Python 3.10+.
+# Uncomment to install:
+# anthropic>=1.0

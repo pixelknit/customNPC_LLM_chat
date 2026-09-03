@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Some cool character's chatroom</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      background: #0e0b16;
+      color: #d8d2e6;
+      display: flex;
+      justify-content: center;
+    }
+    main {
+      width: 100%;
+      max-width: 680px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 24px 16px;
+    }
+    h1 {
+      font-size: 1.4rem;
+      font-weight: normal;
+      letter-spacing: 0.08em;
+      text-align: center;
+      color: #b79cff;
+      margin: 0 0 4px;
+    }
+    p.tagline {
+      text-align: center;
+      margin: 0 0 20px;
+      font-style: italic;
+      color: #7c7391;
+      font-size: 0.9rem;
+    }
+    #log {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-bottom: 16px;
+    }
+    .msg { padding: 10px 14px; border-radius: 10px; line-height: 1.5; white-space: pre-wrap; }
+    .user { align-self: flex-end; background: #2a2140; max-width: 80%; }
+    .wizard { align-self: flex-start; background: #1a1526; border: 1px solid #33294d; max-width: 90%; }
+    .wizard.pending { opacity: 0.5; font-style: italic; }
+    form { display: flex; gap: 8px; }
+    input {
+      flex: 1;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #3b3157;
+      background: #16121f;
+      color: inherit;
+      font: inherit;
+    }
+    button {
+      padding: 12px 18px;
+      border-radius: 8px;
+      border: none;
+      background: #6f4bd8;
+      color: white;
+      font: inherit;
+      cursor: pointer;
+    }
+    button:disabled { opacity: 0.5; cursor: default; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>SOME COOL CHARACTER</h1>
+    <p class="tagline">Curios, curses, and honest lanterns &mdash; enquire within.</p>
+    <p class="tagline" id="backend">&nbsp;</p>
+    <div id="log"></div>
+    <form id="form">
+      <input id="input" autocomplete="off" placeholder="Speak your desire, customer..." />
+      <button id="send" type="submit">Send</button>
+    </form>
+  </main>
+
+  <script>
+    const log = document.getElementById("log");
+    const form = document.getElementById("form");
+    const input = document.getElementById("input");
+    const send = document.getElementById("send");
+
+    // Full conversation, resent to the server every turn.
+    const history = [];
+
+    // Show which model is behind the counter.
+    fetch("/api/config")
+      .then((r) => r.json())
+      .then((c) => {
+        document.getElementById("backend").textContent =
+          "tended by " + c.model + " (" + c.backend + ")";
+      })
+      .catch(() => {});
+
+    function addMessage(role, text, extraClass = "") {
+      const el = document.createElement("div");
+      el.className = "msg " + (role === "user" ? "user" : "wizard") + (extraClass ? " " + extraClass : "");
+      el.textContent = text;
+      log.appendChild(el);
+      log.scrollTop = log.scrollHeight;
+      return el;
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const message = input.value.trim();
+      if (!message) return;
+
+      addMessage("user", message);
+      input.value = "";
+      send.disabled = true;
+
+      const pending = addMessage("wizard", "Vaelthorn considers...", "pending");
+
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message, history }),
+        });
+        if (!res.ok) throw new Error("Server responded " + res.status);
+        const data = await res.json();
+
+        pending.remove();
+        addMessage("wizard", data.reply);
+
+        history.push({ role: "user", content: message });
+        history.push({ role: "assistant", content: data.reply });
+      } catch (err) {
+        pending.remove();
+        addMessage("wizard", "The connection falters... (" + err.message + ")");
+      } finally {
+        send.disabled = false;
+        input.focus();
+      }
+    });
+  </script>
+</body>
+</html>
