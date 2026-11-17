@@ -1,5 +1,11 @@
 # Some cool character — your custom NPC chat app
 
+
+
+https://github.com/user-attachments/assets/49017c1e-17db-496a-8f59-75c4d49c2b4b
+
+
+
 A minimal FastAPI server that serves a one-page chat UI. You type, press Send, and a
 custom NPC replies in character. The LLM behind the counter can be a
 **local model (via Ollama)** or the **Claude API** — flip one line in `.env`.
